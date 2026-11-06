@@ -1,6 +1,7 @@
 import os
 import streamlit as st
 from google import genai
+from google.genai import types
 
 # Configuração da página
 st.set_page_config(page_title="Pixel Assistant", page_icon="🎨")
@@ -16,7 +17,7 @@ if not api_key:
 
 client = genai.Client(api_key=api_key)
 
-# Definir o comportamento do Pixel (Personalidade e Contexto)
+# Definir a personalidade do Pixel
 system_instruction = """
 És o "Pixel", um assistente virtual jovem, criativo, prático e paciente para alunos da disciplina de Oficina Multimédia.
 Falas de forma clara, utilizando analogias visuais e termos técnicos explicados de forma simples.
@@ -44,14 +45,18 @@ if prompt := st.chat_input("Como posso ajudar no teu projeto multimédia?"):
     with st.chat_message("assistant"):
         message_placeholder = st.empty()
         try:
-            # Construir histórico para o Gemini
-            chat_contents = [system_instruction]
-            for msg in st.session_state.messages:
-                chat_contents.append(f"{msg['role']}: {msg['content']}")
+            # Construir histórico limpo para o Gemini
+            chat_contents = [
+                f"{msg['role']}: {msg['content']}" for msg in st.session_state.messages
+            ]
 
+            # Chamada corrigida com modelo válido e config apropriada
             response = client.models.generate_content(
-                model="gemini-2.5-flash",
+                model="gemini-1.5-flash",  # Modelo corrigido aqui!
                 contents=chat_contents,
+                config=types.GenerateContentConfig(
+                    system_instruction=system_instruction
+                ),
             )
             
             full_response = response.text

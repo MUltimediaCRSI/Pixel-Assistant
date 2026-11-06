@@ -50,9 +50,9 @@ if prompt := st.chat_input("Como posso ajudar no teu projeto multimédia?"):
                 f"{msg['role']}: {msg['content']}" for msg in st.session_state.messages
             ]
 
-            # Chamada corrigida com modelo válido e config apropriada
+            # Chamada corrigida com o prefixo 'models/'
             response = client.models.generate_content(
-                model="gemini-1.5-flash",  # Modelo corrigido aqui!
+                model="models/gemini-1.5-flash",  # Adicionado o prefixo models/
                 contents=chat_contents,
                 config=types.GenerateContentConfig(
                     system_instruction=system_instruction

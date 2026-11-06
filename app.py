@@ -1,4 +1,3 @@
-import os
 import streamlit as st
 from google import genai
 from google.genai import types
@@ -17,7 +16,7 @@ if not api_key:
 
 client = genai.Client(api_key=api_key)
 
-# Definir a personalidade do Pixel
+# Personalidade e contexto do Pixel
 system_instruction = """
 És o "Pixel", um assistente virtual jovem, criativo, prático e paciente para alunos da disciplina de Oficina Multimédia.
 Falas de forma clara, utilizando analogias visuais e termos técnicos explicados de forma simples.
@@ -25,42 +24,49 @@ Ajudas em programas como Photoshop, Illustrator, Premiere, Audacity, GIMP e DaVi
 Respondes a dúvidas sobre edição de imagem, áudio, vídeo, formatos de ficheiro e atalhos.
 """
 
-# Inicializar o histórico da conversa na sessão
+# Histórico da conversa
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Exibir mensagens anteriores do chat
+# Mostrar mensagens anteriores
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# Prompt do utilizador
+# Entrada do utilizador
 if prompt := st.chat_input("Como posso ajudar no teu projeto multimédia?"):
-    # Guardar e exibir a mensagem do utilizador
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    # Gerar resposta com a Gemini API
     with st.chat_message("assistant"):
         message_placeholder = st.empty()
         try:
-            chat_contents = [
-                f"{msg['role']}: {msg['content']}" for msg in st.session_state.messages
-            ]
+            # Histórico no formato do Gemini (papéis "user" e "model")
+            chat_contents = []
+            for msg in st.session_state.messages:
+                role = "user" if msg["role"] == "user" else "model"
+                chat_contents.append(
+                    types.Content(
+                        role=role,
+                        parts=[types.Part(text=msg["content"])],
+                    )
+                )
 
             response = client.models.generate_content(
-                model="models/gemini-1.5-flash",
+                model="gemini-2.5-flash",
                 contents=chat_contents,
                 config=types.GenerateContentConfig(
-                    system_instruction=system_instruction
+                    system_instruction=system_instruction,
                 ),
             )
-            
+
             full_response = response.text
             message_placeholder.markdown(full_response)
-            
-            st.session_state.messages.append({"role": "assistant", "content": full_response})
-            
+
+            st.session_state.messages.append(
+                {"role": "assistant", "content": full_response}
+            )
+
         except Exception as e:
             st.error(f"Erro ao ligar ao Gemini: {e}")

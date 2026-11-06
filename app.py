@@ -45,14 +45,12 @@ if prompt := st.chat_input("Como posso ajudar no teu projeto multimédia?"):
     with st.chat_message("assistant"):
         message_placeholder = st.empty()
         try:
-            # Construir histórico limpo para o Gemini
             chat_contents = [
                 f"{msg['role']}: {msg['content']}" for msg in st.session_state.messages
             ]
 
-            # Chamada corrigida com o prefixo 'models/'
             response = client.models.generate_content(
-                model="models/gemini-1.5-flash",  # Adicionado o prefixo models/
+                model="models/gemini-1.5-flash",
                 contents=chat_contents,
                 config=types.GenerateContentConfig(
                     system_instruction=system_instruction
@@ -62,7 +60,6 @@ if prompt := st.chat_input("Como posso ajudar no teu projeto multimédia?"):
             full_response = response.text
             message_placeholder.markdown(full_response)
             
-            # Guardar resposta no histórico
             st.session_state.messages.append({"role": "assistant", "content": full_response})
             
         except Exception as e:
